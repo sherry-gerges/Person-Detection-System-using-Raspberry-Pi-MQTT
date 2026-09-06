@@ -23,9 +23,8 @@ while True:
  
     if payload == 1: 
         print("Person detected") 
-         
+        client.publish("SIC/support", "Person detected") 
     else: 
         print("No person detected")  
-           
+        client.publish("SIC/support", "No Person detected") 
     time.sleep(3) 
-    
