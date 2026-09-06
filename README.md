@@ -1,56 +1,63 @@
-# 👤 Person Detection System using Raspberry Pi & MQTT
+# Person Detection System using Raspberry Pi and MQTT
 
-A simple IoT-based **Person Detection System** built using a **Raspberry Pi**, a **Line Sensor**, and the **MQTT protocol**.
+## 📌 Project Overview
 
-The system continuously monitors the sensor and publishes the detection status to a **HiveMQ Cloud MQTT broker**. This allows another IoT device or application subscribed to the same MQTT topic to receive the sensor data remotely.
+This project is a simple **Person Detection IoT System** built using a **Raspberry Pi**, a **Line Sensor**, and **MQTT**.
 
----
-
-## 🚀 Features
-
-* Detects whether a person/object is present using a Line Sensor.
-* Uses Raspberry Pi GPIO to read the sensor.
-* Sends sensor readings using the MQTT protocol.
-* Uses **HiveMQ Cloud** as the MQTT broker.
-* Secure MQTT communication using **TLS/SSL**.
-* Publishes data every 3 seconds.
-* Displays the detection status in the Raspberry Pi terminal.
+The system continuously monitors the sensor to detect whether a person is present. The detection status is published to an MQTT topic using **HiveMQ Cloud**, allowing other IoT devices or applications to receive the sensor data remotely.
 
 ---
 
-## 🛠️ Hardware Components
+## 🛠️ Technologies Used
+
+* Raspberry Pi
+* Python
+* GPIO Zero
+* Line Sensor
+* MQTT
+* Paho MQTT
+* HiveMQ Cloud
+* SSL/TLS
+
+---
+
+## 🔌 Components
 
 * Raspberry Pi
 * Line Sensor
-* Jumper wires
-* Breadboard
-* Power supply
+* Jumper Wires
+* Internet Connection
+
+### GPIO Connection
+
+| Component   | Raspberry Pi GPIO |
+| ----------- | ----------------- |
+| Line Sensor | GPIO 17           |
 
 ---
 
-## 💻 Software & Technologies
+## ⚙️ How It Works
 
-* Python
-* Raspberry Pi GPIO
-* `gpiozero`
-* `paho-mqtt`
-* MQTT
-* HiveMQ Cloud
-* TLS/SSL
+1. The Raspberry Pi initializes the Line Sensor connected to **GPIO 17**.
+2. The program connects securely to **HiveMQ Cloud** using MQTT over TLS.
+3. The sensor value is read continuously.
+4. The detected value is published to the MQTT topic:
 
----
+```text
+SIC/support
+```
 
-## 🔌 Hardware Connection
+5. If a person is detected, the system:
 
-The Line Sensor is connected to **GPIO 17** of the Raspberry Pi.
+   * Prints `Person detected`
+   * Publishes `Person detected` to the MQTT topic.
 
-| Component       | Raspberry Pi                                |
-| --------------- | ------------------------------------------- |
-| Line Sensor OUT | GPIO 17                                     |
-| Line Sensor VCC | 5V / 3.3V according to sensor specification |
-| Line Sensor GND | GND                                         |
+6. If no person is detected, the system:
 
-> Make sure the sensor's output voltage is safe for the Raspberry Pi GPIO.
+   * Prints `No person detected`
+   * Publishes `No Person detected` to the MQTT topic.
+
+7. The system checks the sensor every **3 seconds**.
 
 ---
 
@@ -58,134 +65,57 @@ The Line Sensor is connected to **GPIO 17** of the Raspberry Pi.
 
 The project uses **HiveMQ Cloud** as the MQTT broker.
 
-```python
-MQTT_HOST = "f7559e3e38f94eb7bfc2906b6be26633.s1.eu.hivemq.cloud"
-MQTT_PORT = 8883
-```
+The connection uses:
 
-### MQTT Topic
+* **Protocol:** MQTT
+* **Port:** `8883`
+* **Security:** SSL/TLS
+* **Authentication:** Username & Password
+* **Topic:** `SIC/support`
 
-The sensor data is published to:
-
-```text
-SIC/support
-```
-
-Another MQTT client can subscribe to this topic to receive the sensor readings.
+> ⚠️ Never upload your real MQTT password to GitHub. Store credentials securely using environment variables or a separate configuration file.
 
 ---
 
-## 🔐 Authentication
+## 📦 Required Python Libraries
 
-The MQTT connection uses a username and password:
-
-```python
-client.username_pw_set(USERNAME, PASSWORD)
-```
-
-TLS encryption is enabled using:
-
-```python
-client.tls_set(cert_reqs=ssl.CERT_REQUIRED)
-```
-
-### ⚠️ Security Note
-
-Do **not** upload your real HiveMQ password to GitHub.
-
-Instead of writing your password directly in the source code, use environment variables:
-
-```python
-import os
-
-USERNAME = os.getenv("MQTT_USERNAME")
-PASSWORD = os.getenv("MQTT_PASSWORD")
-```
-
-Then configure the variables on your Raspberry Pi.
-
----
-
-## 📦 Installation
-
-Install the required Python libraries:
+Install the required libraries using:
 
 ```bash
 pip install paho-mqtt gpiozero
 ```
 
-If you're using a Raspberry Pi OS environment where GPIO dependencies are required, make sure the appropriate GPIO backend is installed and working.
+The project also uses Python's built-in:
+
+```python
+ssl
+time
+signal
+```
 
 ---
 
 ## ▶️ Running the Project
 
-Run the Python script:
+After connecting the Line Sensor to GPIO 17, run:
 
 ```bash
 python3 main.py
 ```
 
-The system will continuously read the Line Sensor.
-
-Example output:
-
-```text
-Person detected
-No person detected
-Person detected
-Person detected
-```
-
-At the same time, the sensor value is published to the MQTT broker every **3 seconds**.
-
----
-
-## 🔄 How It Works
-
-The system follows this process:
-
-```text
-Line Sensor
-     ↓
-Raspberry Pi GPIO 17
-     ↓
-Python Program
-     ↓
-MQTT Client
-     ↓
-TLS/SSL Connection
-     ↓
-HiveMQ Cloud
-     ↓
-SIC/support Topic
-     ↓
-Subscriber / IoT Application
-```
-
-The Raspberry Pi reads the sensor value:
-
-```python
-payload = sensor.value
-```
-
-Then publishes it to HiveMQ:
-
-```python
-client.publish("SIC/support", payload)
-```
-
-If the sensor value is `1`, the program prints:
+The terminal will display either:
 
 ```text
 Person detected
 ```
 
-Otherwise:
+or:
 
 ```text
 No person detected
 ```
+
+The corresponding status is also sent through MQTT.
 
 ---
 
@@ -200,66 +130,35 @@ Person-Detection-MQTT/
 
 ---
 
-## 🌐 MQTT Communication
+## 🚀 Future Improvements
 
-The project demonstrates how MQTT can be used for IoT communication.
+Possible improvements include:
 
-### Publisher
-
-The Raspberry Pi acts as the **MQTT Publisher**.
-
-It publishes:
-
-```text
-Topic: SIC/support
-Payload: 0 or 1
-```
-
-### Broker
-
-**HiveMQ Cloud** acts as the MQTT Broker.
-
-### Subscriber
-
-Any MQTT client subscribed to:
-
-```text
-SIC/support
-```
-
-can receive the sensor data.
+* Adding an LCD to display the detection status.
+* Adding LEDs for visual indication.
+* Sending notifications when a person is detected.
+* Creating a web dashboard to display real-time MQTT data.
+* Storing detection events in a database.
+* Adding multiple sensors for more accurate detection.
 
 ---
 
-## 🎯 Project Goal
+👩‍💻 Author
 
-The goal of this project is to demonstrate a basic **IoT monitoring system** where sensor data is collected by a Raspberry Pi and transmitted remotely using **MQTT** and **HiveMQ Cloud**.
+Sherry Gerges
 
-This architecture can be extended to support:
+Electrical Engineering Student
 
-* Remote monitoring
-* Smart security systems
-* IoT dashboards
-* Multiple sensors
-* Automated alerts
-* Smart home applications
+Interested in:
 
----
-
-## 👩‍💻 Technologies Used
-
-| Technology   | Purpose                 |
-| ------------ | ----------------------- |
-| Raspberry Pi | Main controller         |
-| Line Sensor  | Person/object detection |
-| Python       | Programming language    |
-| GPIO Zero    | GPIO control            |
-| Paho MQTT    | MQTT communication      |
-| HiveMQ Cloud | MQTT broker             |
-| TLS/SSL      | Secure communication    |
+IoT
+Embedded Systems
+Communication Systems
+Python
+Raspberry Pi
 
 ---
 
-## 📜 License
+## 📄 License
 
-This project was created for educational and IoT development purposes.
+This project is created for educational and IoT learning purposes.
